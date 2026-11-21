@@ -1,0 +1,21 @@
+version: 1
+created_at: "2026-08-25"
+source_manifest: "manifests/canonical/dfuc2022_canonical.csv"
+seed: 42
+
+ratios:
+  train: 0.70
+  validation: 0.15
+  test: 0.15
+
+stratification:
+  foreground_quantile_bins: 5
+  component_groups: "single versus multiple"
+
+freeze:
+  test_manifest_immutable: true
+  test_forbidden_for_model_selection: true
+  test_forbidden_for_threshold_selection: true
+  test_forbidden_for_checkpoint_selection: true
+  test_forbidden_for_sam_configuration: true
+

@@ -1,0 +1,68 @@
+protocol_version: 1
+implementation_revision: 2
+stage: day12_sam_technical_integration
+scientific_role: automatic_postprocessing_ablation_smoke
+
+network:
+  experiment_id: DR-IFT
+  seed: 42
+  run_id: DRIFT_seed42_20260903T033716Z
+  run_directory: results/day10/DRIFT/DRIFT_seed42_20260903T033716Z
+  checkpoint_filename: best_checkpoint.pt
+  checkpoint_epoch: 56
+  threshold: 0.18
+  threshold_source: validation_only_frozen_before_SAM
+  input_height: 384
+  input_width: 512
+
+sam:
+  family: SAM 1
+  model_type: vit_b
+  checkpoint_filename: sam_vit_b_01ec64.pth
+  checkpoint_path: models/sam/sam_vit_b_01ec64.pth
+  checkpoint_url: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+  repository: https://github.com/facebookresearch/segment-anything
+  repository_commit: 6fdee8f2727f4506cfbbe553e23b895e27956588
+  weights_frozen: true
+  fine_tuning: false
+  multimask_output: false
+  image_encoder_size: 1024
+
+prompts:
+  source: DR-IFT prediction only
+  ground_truth_allowed: false
+  modes: [box, mask_input, box_plus_mask]
+  threshold_for_components: 0.18
+  connectivity: 8
+  box_padding_pixels: 0
+  multiple_components: one_prompt_per_component_union_outputs
+  component_mask_input: shifted_network_logits_inside_component_box
+  mask_input_size: [256, 256]
+  mask_input_alignment: sam_resize_longest_side_then_bottom_right_padding
+  outside_logit: -10.0
+  empty_prediction: empty_output_without_sam_call
+  max_components_safety: 64
+
+data:
+  split: validation
+  manifest: manifests/splits/dfuc_validation.csv
+  protected_partitions: [test, external, FUSeg]
+  smoke_ids:
+    - DFUC2022_100714
+    - DFUC2022_101229
+    - DFUC2022_101296
+    - DFUC2022_101303
+
+evaluation:
+  baseline: DR-IFT_without_SAM
+  variants: [SAM_box, SAM_mask_input, SAM_box_plus_mask]
+  primary_metric: macro_dice_per_image
+  secondary_metrics: [iou, precision, recall, specificity, balanced_accuracy]
+  smoke_is_for_selection: false
+  reference_used_only_after_prediction: true
+
+runtime:
+  output_root: results/day12/smoke
+  run_prefix: SAM1_ViTB_DRIFT_seed42
+  device: auto
+  protected_partitions_accessed: false

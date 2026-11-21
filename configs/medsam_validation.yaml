@@ -1,0 +1,104 @@
+protocol_version: 1
+frozen_at: '2026-09-15'
+stage: day13b_medsam_validation_ablation
+scientific_role: domain_adapted_foundation_model_validation_ablation
+
+network:
+  experiment_id: DR-IFT
+  seed: 42
+  run_id: DRIFT_seed42_20260903T033716Z
+  run_directory: results/day10/DRIFT/DRIFT_seed42_20260903T033716Z
+  checkpoint_filename: best_checkpoint.pt
+  checkpoint_epoch: 56
+  threshold: 0.18
+  threshold_source: validation_only_frozen_before_SAM
+  input_height: 384
+  input_width: 512
+
+sam:
+  family: SAM 1
+  model_type: vit_b
+  checkpoint_filename: sam_vit_b_01ec64.pth
+  checkpoint_path: models/sam/sam_vit_b_01ec64.pth
+  checkpoint_sha256: ec2df62732614e57411cdcf32a23ffdf28910380d03139ee0f4fcbe91eb8c912
+  repository: https://github.com/facebookresearch/segment-anything
+  repository_commit: 6fdee8f2727f4506cfbbe553e23b895e27956588
+  weights_frozen: true
+  fine_tuning: false
+  image_encoder_size: 1024
+
+medsam:
+  family: MedSAM
+  model_type: vit_b
+  checkpoint_filename: medsam_vit_b.pth
+  checkpoint_path: models/medsam/medsam_vit_b.pth
+  checkpoint_sha256: 34b34b78c1d18cb8c6bf84cf9c00e135d6d6c965699f3c0e31ef1bc9dcb5be74
+  checkpoint_url: https://zenodo.org/records/10689643/files/medsam_vit_b.pth?download=1
+  checkpoint_record: https://zenodo.org/records/10689643
+  publication: https://doi.org/10.1038/s41467-024-44824-z
+  code_repository: https://github.com/bowang-lab/MedSAM
+  prompt_mode: box
+  preprocessing: official_square_1024_minmax
+  output_threshold: 0.5
+  weights_frozen: true
+  fine_tuning: false
+
+prompts:
+  source: DR-IFT prediction only
+  ground_truth_allowed: false
+  threshold_for_components: 0.18
+  connectivity: 8
+  box_padding_pixels: 0
+  multiple_components: one_prompt_per_component_union_outputs
+  empty_prediction: empty_output_without_model_call
+  max_components_safety: 64
+  generic_sam_modes: [box, mask_input, box_plus_mask]
+  mask_input_size: [256, 256]
+  mask_input_alignment: sam_resize_longest_side_then_bottom_right_padding
+  outside_logit: -10.0
+
+data:
+  split: validation
+  manifest: manifests/splits/dfuc_validation.csv
+  manifest_sha256: f689915c088a5b2488ffdd8351290c165e2386766bd293c3dea3e983c6842fe3
+  expected_records: 294
+  fixed_visualization_manifest: configs/visualization_cases_v1.csv
+  fixed_visualization_manifest_sha256: 5d5456e586610eb6949995a75cf25f9c8508b24801f127efb8b82b5c359c4787
+  expected_fixed_cases: 12
+  protected_partitions: [test, external, FUSeg]
+
+evaluation:
+  variants:
+    [DR-IFT_without_SAM, SAM_box, SAM_mask_input, SAM_box_plus_mask, MedSAM_box]
+  primary_metric: macro_dice_per_image
+  secondary_metrics: [iou, precision, recall, specificity, balanced_accuracy, boundary_iou]
+  descriptive_metrics: [accuracy]
+  threshold_optimization_allowed: false
+  reference_used_only_after_prediction: true
+  final_effect_requires_locked_test: true
+  boundary_dilation_ratio: 0.02
+
+advance_rule:
+  candidate: MedSAM_box
+  reference: DR-IFT_without_SAM
+  minimum_mean_dice_gain: 0.01
+  require_ci95_low_above_zero: true
+  rationale: one_percentage_point_practical_gain_plus_positive_paired_interval
+  criterion_is_study_operational_not_universal_clinical_threshold: true
+
+statistics:
+  statistical_unit: canonical_image
+  bootstrap_method: paired_percentile
+  bootstrap_samples: 10000
+  confidence: 0.95
+  permutation_method: paired_sign_flip_two_sided
+  permutation_samples: 50000
+  multiplicity: Holm_across_four_SAM_vs_DRIFT_Dice_contrasts
+  seed: 20260915
+
+runtime:
+  output_root: results/day13b/MedSAM_validation
+  run_prefix: MedSAM_ViTB_DRIFT_seed42_validation
+  progress_every_images: 10
+  device: auto
+  protected_partitions_accessed: false

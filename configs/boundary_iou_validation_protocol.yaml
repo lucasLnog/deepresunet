@@ -1,0 +1,34 @@
+protocol_version: 1
+stage: day14b_boundary_iou_validation
+status: frozen_before_boundary_iou_results
+dated_at: "2026-09-17"
+question: >-
+  A pequena melhora de Dice da DR-IFT-B também corresponde a melhor delimitação
+  dos contornos quando comparada de forma pareada à DR-IFT original?
+data:
+  split: validation
+  expected_records: 294
+  manifest: manifests/splits/dfuc_validation.csv
+  protected_partitions: [test, external, FUSeg]
+comparison:
+  baseline: DR-IFT
+  candidate: DR-IFT-B
+  seeds: [42, 1337, 2026]
+  pairing_unit: canonical_image
+  checkpoint: existing_best_checkpoint
+  threshold: reuse_each_run_validation_selected_threshold
+  new_training: false
+  threshold_optimization_allowed: false
+evaluation:
+  metric: boundary_iou
+  boundary_dilation_ratio: 0.02
+  role: secondary_descriptive_only
+  changes_model_selection: false
+  reference_used_only_after_prediction: true
+statistics:
+  bootstrap_samples: 10000
+  permutation_samples: 50000
+  confidence_level: 0.95
+literature:
+  citation: "Cheng et al., Boundary IoU, CVPR 2021"
+  url: "https://openaccess.thecvf.com/content/CVPR2021/html/Cheng_Boundary_IoU_Improving_Object-Centric_Image_Segmentation_Evaluation_CVPR_2021_paper.html"

@@ -1,0 +1,28 @@
+# Local data and model weights
+/Dataset/
+/models/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Drive exports, historical notebooks and generated experiment runs
+*.zip
+/archive/
+/results/
+/output/
+/docs/
+TEST_FROZEN.md
+TEST_ACCESS_LOG.csv
+
+# Python, notebooks and local editor state
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+.env
+.env.*
+.vscode/
+.tmp/
+tmp/

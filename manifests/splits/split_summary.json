@@ -1,0 +1,106 @@
+{
+  "generated_at_utc": "2026-08-25T18:08:48.574144+00:00",
+  "source_manifest": "manifests/canonical/dfuc2022_canonical.csv",
+  "source_manifest_sha256": "f10cbfd29b09c2a14c1958444fd39613fc139735c3f03701862f282f56d15269",
+  "policy_sha256": "9f22a7e1f9395f28fc486f66a1529a40bc314de4d2b8e47dbe096dd99b3c03c8",
+  "seed": 42,
+  "ratios": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "target_counts": {
+    "train": 1373,
+    "validation": 294,
+    "test": 294
+  },
+  "foreground_quantile_edges": [
+    0.00029622395833333334,
+    0.0035514322916666667,
+    0.007200520833333333,
+    0.01442057291666667,
+    0.033177083333333336,
+    0.34753580729166667
+  ],
+  "stratification": "foreground quintile x single/multiple components",
+  "patient_level_split": false,
+  "patient_level_limitation": "patient identifiers unavailable",
+  "overlap_checks": {
+    "canonical_id_overlap": 0,
+    "exact_image_hash_overlap": 0
+  },
+  "splits": {
+    "train": {
+      "count": 1373,
+      "foreground_fraction": {
+        "min": 0.00029622395833333334,
+        "q1": 0.00431640625,
+        "median": 0.010244140625,
+        "q3": 0.026689453125,
+        "max": 0.34753580729166667,
+        "mean": 0.024466475384650403
+      },
+      "component_groups": {
+        "multiple": 185,
+        "single": 1188
+      },
+      "area_bins": {
+        "0": 274,
+        "1": 275,
+        "2": 275,
+        "3": 274,
+        "4": 275
+      }
+    },
+    "validation": {
+      "count": 294,
+      "foreground_fraction": {
+        "min": 0.000302734375,
+        "q1": 0.004510091145833334,
+        "median": 0.01048828125,
+        "q3": 0.025620930989583332,
+        "max": 0.23353841145833334,
+        "mean": 0.022287038513321998
+      },
+      "component_groups": {
+        "multiple": 40,
+        "single": 254
+      },
+      "area_bins": {
+        "0": 58,
+        "1": 59,
+        "2": 59,
+        "3": 59,
+        "4": 59
+      }
+    },
+    "test": {
+      "count": 294,
+      "foreground_fraction": {
+        "min": 0.0005989583333333333,
+        "q1": 0.004664713541666666,
+        "median": 0.010322265625,
+        "q3": 0.025478515625,
+        "max": 0.20912109375,
+        "mean": 0.02160345583545918
+      },
+      "component_groups": {
+        "multiple": 39,
+        "single": 255
+      },
+      "area_bins": {
+        "0": 59,
+        "1": 59,
+        "2": 59,
+        "3": 58,
+        "4": 59
+      }
+    }
+  },
+  "manifest_hashes": {
+    "combined": "1d60f9bac230d3f1c87cc1d17b81caaf75de1a17e5821fc1e06f3a72bb561523",
+    "train": "6589b7ed2804a0a43fb4b865e68aac7b387fb036934a70ac403243c8d78ff778",
+    "validation": "f689915c088a5b2488ffdd8351290c165e2386766bd293c3dea3e983c6842fe3",
+    "test": "ce4e201fc1c0e60f7323e82d934dcc13b8ff3e395fce1b1377cfa3a30c5012b1"
+  }
+}

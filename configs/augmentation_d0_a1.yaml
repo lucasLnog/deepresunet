@@ -1,0 +1,127 @@
+protocol_version: 1
+stage: day7_augmentation_ablation
+experiment_id: D0-A1
+scientific_role: augmentation_ablation
+seed: 42
+
+data:
+  train_manifest: manifests/splits/dfuc_train.csv
+  validation_manifest: manifests/splits/dfuc_validation.csv
+  height: 384
+  width: 512
+  mask_threshold: 128
+  image_scale: zero_one
+  color_preprocessing: none
+  augmentation: A1
+  protected_partitions: [test, external, FUSeg]
+
+model:
+  architecture: deep_res_unet
+  provenance: FUSegNet - DeepResidualUNet.ipynb
+  in_channels: 3
+  classes: 1
+  base_channels: 32
+  activation: null
+  encoder_weights: null
+  pretrained: false
+
+loss:
+  name: bce_with_logits_plus_soft_dice
+  bce_weight: 0.5
+  dice_weight: 0.5
+  smooth: 1.0
+
+training:
+  optimizer: adam
+  learning_rate: 0.001
+  batch_size: 4
+  oom_fallback_batch_size: 2
+  max_epochs: 100
+  amp: false
+  num_workers: 0
+  checkpoint_threshold: 0.5
+  scheduler:
+    name: reduce_lr_on_plateau
+    mode: max
+    factor: 0.5
+    patience: 5
+    min_learning_rate: 0.000001
+  early_stopping:
+    patience: 15
+    min_delta: 0.001
+
+threshold_selection:
+  start: 0.05
+  stop: 0.95
+  step: 0.01
+  objective: macro_dice
+  tie_break: closest_to_0.5
+
+augmentation_randomness:
+  seed_base: 42000
+  epoch_rule: seed_base_plus_epoch
+  dataloader_rule: study_seed_plus_epoch
+
+augmentation_safety:
+  rejection_rule: empty_positive_mask_only
+  max_resamples: 3
+  fallback: identity_after_resize
+  retention_review_threshold: 0.5
+  retention_threshold_filters_training: false
+
+augmentation_pipelines:
+  A0:
+    description: no augmentation
+    geometric: false
+    photometric: false
+  A1:
+    description: plausible geometric augmentation
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.5
+    affine:
+      probability: 0.7
+      rotation_degrees: [-20.0, 20.0]
+      scale: [0.90, 1.10]
+      translation_fraction:
+        x: [-0.05, 0.05]
+        y: [-0.05, 0.05]
+      shear_degrees: [0.0, 0.0]
+      keep_aspect_ratio: true
+      balanced_scale: true
+      image_interpolation: linear
+      mask_interpolation: nearest
+      border_mode: constant
+      image_fill_rgb: [0, 0, 0]
+      mask_fill: 0
+  A2:
+    description: A1 plus one mild photometric transform
+    inherits: A1
+    photometric_one_of_probability: 0.5
+    photometric_choices:
+      brightness_contrast:
+        weight: 1.0
+        brightness_limit: [-0.10, 0.10]
+        contrast_limit: [-0.10, 0.10]
+      gamma:
+        weight: 1.0
+        gamma_limit: [90, 110]
+      hue_saturation_value:
+        weight: 1.0
+        hue_shift_limit: [-3, 3]
+        saturation_shift_limit: [-10, 10]
+        value_shift_limit: [-10, 10]
+
+visualization:
+  fixed_validation_ids: [DFUC2022_100714, DFUC2022_101229, DFUC2022_101296, DFUC2022_101303, DFUC2022_100835, DFUC2022_100842, DFUC2022_101960, DFUC2022_100873]
+  selection_basis: inherited_from_D0_before_training
+  first_training_batch_saved: true
+
+confirmation:
+  screening_seed: 42
+  finalist_seeds: [42, 1337, 2026]
+
+runtime:
+  device: auto
+  run_prefix: D0A1_seed42
+  output_root: results/day7/D0A1
+  resume_supported: true

@@ -1,0 +1,25 @@
+{
+  "generated_at_utc": "2026-08-25T18:03:47.373187+00:00",
+  "mask_threshold": 128,
+  "raw_data_modified": false,
+  "DFUC2022": {
+    "units": 1961,
+    "source_records": 2000,
+    "multi_reference_units": 39,
+    "mask_policy": "logical_or"
+  },
+  "FUSeg": {
+    "units": 962,
+    "valid_reference_records": 986,
+    "excluded_records": 24,
+    "multi_reference_units": 23,
+    "mask_policy": "reference_mean"
+  },
+  "files": {
+    "dfuc2022_canonical.csv": "f10cbfd29b09c2a14c1958444fd39613fc139735c3f03701862f282f56d15269",
+    "fuseg_external_canonical.csv": "be4e9014900db574d2d915c81b1bee81e51f5735a671c7243428dd871215718e",
+    "data_policy.yaml": "3b1825d8d0344c7651729e020eafcc4a6054c2da79c983f1f9da7d16e32fd80f",
+    "data_quality_exclusions.csv": "642869acdf8b608f5d533a32ef47099c13f791bff898f766513ed39a1e099d3d",
+    "dataset_inventory.csv": "81e16f9d889c2d6416aab124e4cb5bed03117af27e88bfbbc8d47c8eb01ce3ae"
+  }
+}

@@ -1,0 +1,97 @@
+protocol_version: 1
+stage: day7_augmentation_visual_audit
+scientific_role: implementation_gate_before_augmentation_training
+seed: 42
+
+data:
+  train_manifest: manifests/splits/dfuc_train.csv
+  height: 384
+  width: 512
+  mask_threshold: 128
+  protected_partitions:
+    - validation
+    - test
+    - external
+    - FUSeg
+
+pipelines:
+  A0:
+    description: no augmentation
+    geometric: false
+    photometric: false
+  A1:
+    description: plausible geometric augmentation
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.5
+    affine:
+      probability: 0.7
+      rotation_degrees: [-20.0, 20.0]
+      scale: [0.90, 1.10]
+      translation_fraction:
+        x: [-0.05, 0.05]
+        y: [-0.05, 0.05]
+      shear_degrees: [0.0, 0.0]
+      keep_aspect_ratio: true
+      balanced_scale: true
+      image_interpolation: linear
+      mask_interpolation: nearest
+      border_mode: constant
+      image_fill_rgb: [0, 0, 0]
+      mask_fill: 0
+  A2:
+    description: A1 plus one mild photometric transform
+    inherits: A1
+    photometric_one_of_probability: 0.5
+    photometric_choices:
+      brightness_contrast:
+        weight: 1.0
+        brightness_limit: [-0.10, 0.10]
+        contrast_limit: [-0.10, 0.10]
+      gamma:
+        weight: 1.0
+        gamma_limit: [90, 110]
+      hue_saturation_value:
+        weight: 1.0
+        hue_shift_limit: [-3, 3]
+        saturation_shift_limit: [-10, 10]
+        value_shift_limit: [-10, 10]
+
+visualization:
+  fixed_train_ids:
+    - DFUC2022_100405
+    - DFUC2022_100211
+    - DFUC2022_100890
+    - DFUC2022_101085
+    - DFUC2022_100559
+    - DFUC2022_101475
+    - DFUC2022_101371
+    - DFUC2022_101649
+  selection_basis: five_area_bins_plus_multiple_components_from_manifest_only
+  selected_before_augmentation_results: true
+  variants_per_pipeline_per_image: 3
+  variant_seeds: [4201, 4202, 4203]
+
+gate:
+  purpose: detect implementation errors, mask misalignment or implausible distortion
+  forbidden_use: choose scientific winner from visual appearance
+  require_binary_masks: true
+  require_identical_image_mask_shape: true
+  minimum_foreground_retention_ratio_for_review: 0.5
+  winner_requires_training_validation_metrics: true
+
+forbidden_transforms:
+  - random_crop
+  - mixup
+  - cutmix
+  - elastic_deformation
+  - perspective
+  - shear
+  - strong_blur
+  - strong_noise
+  - synthetic_ulcer_insertion
+
+runtime:
+  output_root: results/day7/augmentation_audit
+  model_training_allowed: false
+  allowed_split: train
+

@@ -1,0 +1,23 @@
+base_config: configs/fine_tuning_progressive.yaml
+protocol_version: 1
+protocol_amendment: configs/study_protocol_amendment_boundary_loss.yaml
+stage: day14_boundary_loss_ablation
+experiment_id: DR-IFT-B
+scientific_role: exploratory_boundary_loss_ablation
+loss:
+  name: bce_dice_plus_soft_perimeter
+  bce_weight: 0.5
+  dice_weight: 0.5
+  region_weight: 0.9
+  perimeter_weight: 0.1
+  smooth: 1.0
+  perimeter_epsilon: 1.0
+boundary_ablation:
+  only_changed_factor: loss
+  weight_search_allowed: false
+  test_access_allowed: false
+runtime:
+  device: auto
+  run_prefix: DRIFTB_seed42
+  output_root: results/day14/seed42/DRIFTB
+  resume_supported: true

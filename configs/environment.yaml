@@ -1,0 +1,31 @@
+version: 1
+reference_date: "2026-08-27"
+
+colab:
+  recommended_runtime: "2026.07"
+  expected_python: "3.12"
+  expected_torch: "2.11"
+  project_root: "/content/drive/MyDrive/TCC/Projeto_TCC_Lucas"
+  mount_point: "/content/drive"
+  data_cache_root: "/content/tcc_data"
+
+local:
+  project_root: "."
+
+data:
+  directory: "Dataset"
+  mask_threshold: 128
+  target_height: 384
+  target_width: 512
+
+dataloader:
+  batch_size_smoke: 2
+  num_workers_smoke: 0
+  seed: 42
+  allowed_development_splits:
+    - train
+    - validation
+
+protection:
+  block_test_during_development: true
+  block_external_during_development: true

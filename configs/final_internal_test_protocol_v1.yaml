@@ -1,0 +1,201 @@
+protocol_version: 1
+frozen_at: "2026-09-25"
+status: frozen_before_internal_test_access
+parent_protocol: configs/study_protocol_v1.yaml
+purpose: >-
+  Congelar, antes de qualquer inferência no teste interno, os checkpoints, limiares,
+  braços, contrastes e regras de interpretação da avaliação final do DFUC2022.
+
+data:
+  dataset: DFUC2022_canonical
+  split: internal_test
+  manifest: manifests/splits/dfuc_test.csv
+  manifest_sha256: ce4e201fc1c0e60f7323e82d934dcc13b8ff3e395fce1b1377cfa3a30c5012b1
+  expected_records: 294
+  statistical_unit: canonical_image_or_duplicate_group
+  patient_ids_available: false
+  patient_level_independence_claimed: false
+  image_height: 384
+  image_width: 512
+  access_policy: one_batched_run_after_successful_preflight
+
+representative_run_policy:
+  seed: 42
+  rationale: >-
+    A seed 42 foi definida antes da confirmação multiseed e não é a melhor seed
+    escolhida retrospectivamente. As demais seeds permanecem evidência de robustez
+    somente na validação.
+  ensemble_allowed: false
+  checkpoint_reselection_allowed: false
+  threshold_reselection_allowed: false
+
+arms:
+  - id: D0
+    role: central_baseline
+    config: configs/baseline_d0.yaml
+    run_id: D0_seed42_20260829T105601Z
+    run_directory: results/day5/D0/D0_seed42_20260829T105601Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.22
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: zero_one
+  - id: P1
+    role: preprocessing_screen_winner
+    config: configs/preprocessing_dp1_shades_of_gray.yaml
+    run_id: DP1_seed42_20260829T165025Z
+    run_directory: results/day6/DP1/DP1_seed42_20260829T165025Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.15
+    threshold_source: validation_only
+    preprocessing: P1_shades_of_gray_p6
+    normalization: zero_one
+  - id: A1
+    role: augmentation_winner
+    config: configs/augmentation_d0_a1.yaml
+    run_id: D0A1_seed42_20260830T221046Z
+    run_directory: results/day7/D0A1/D0A1_seed42_20260830T221046Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.08
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: zero_one
+  - id: P1A1
+    role: planned_preprocessing_augmentation_combination
+    config: configs/combined_preprocessing_augmentation_p1_a1.yaml
+    run_id: P1A1_seed42_20260831T135818Z
+    run_directory: results/day8/P1A1/P1A1_seed42_20260831T135818Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.17
+    threshold_source: validation_only
+    preprocessing: P1_shades_of_gray_p6
+    normalization: zero_one
+  - id: DRRT
+    role: random_encoder_initialization_control
+    config: configs/transfer_learning_random_encoder.yaml
+    run_id: DRRT_seed42_20260831T220901Z
+    run_directory: results/day9/DRRT/DRRT_seed42_20260831T220901Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.21
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: imagenet
+  - id: DRIT
+    role: imagenet_initialization
+    config: configs/transfer_learning_imagenet_encoder.yaml
+    run_id: DRIT_seed42_20260901T014645Z
+    run_directory: results/day9/DRIT/DRIT_seed42_20260901T014645Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.09
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: imagenet
+  - id: DRIF
+    role: frozen_encoder_control
+    config: configs/fine_tuning_frozen_encoder.yaml
+    run_id: DRIF_seed42_20260903T015911Z
+    run_directory: results/day10/DRIF/DRIF_seed42_20260903T015911Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.82
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: imagenet
+  - id: DRIFT
+    role: primary_final_network
+    config: configs/fine_tuning_progressive.yaml
+    run_id: DRIFT_seed42_20260903T033716Z
+    run_directory: results/day10/DRIFT/DRIFT_seed42_20260903T033716Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.18
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: imagenet
+  - id: DRIFT_SAM_BPM
+    role: planned_SAM_effect
+    derived_from: DRIFT
+    config: configs/sam_validation.yaml
+    checkpoint: inherited_from_DRIFT
+    threshold: 0.18
+    threshold_source: validation_only_before_SAM
+    sam_mode: box_plus_mask
+    sam_checkpoint: models/sam/sam_vit_b_01ec64.pth
+    sam_repository_commit: 6fdee8f2727f4506cfbbe553e23b895e27956588
+  - id: DRIFTB
+    role: exploratory_boundary_loss_candidate
+    config: configs/boundary_loss_ablation_seed42.yaml
+    run_id: DRIFTB_seed42_20260916T012101Z
+    run_directory: results/day14/seed42/DRIFTB/DRIFTB_seed42_20260916T012101Z
+    checkpoint: best_checkpoint.pt
+    threshold: 0.05
+    threshold_source: validation_only
+    preprocessing: P0_RGB
+    normalization: imagenet
+
+metrics:
+  primary: macro_per_image_dice_at_validation_selected_threshold
+  sensitivity: macro_per_image_dice_at_fixed_threshold_0_5
+  secondary:
+    - macro_per_image_iou
+    - macro_per_image_precision
+    - macro_per_image_recall
+    - macro_per_image_balanced_accuracy
+    - macro_per_image_boundary_iou_at_2_percent_diagonal
+  descriptive_only:
+    - accuracy
+    - specificity
+    - micro_global_metrics
+  empty_case_policy: same_as_frozen_validation_pipeline
+
+primary_contrasts:
+  - {id: preprocessing, candidate: P1, control: D0}
+  - {id: augmentation, candidate: A1, control: D0}
+  - {id: transfer_initialization, candidate: DRIT, control: DRRT}
+  - {id: progressive_fine_tuning, candidate: DRIFT, control: DRIF}
+  - {id: SAM_refinement, candidate: DRIFT_SAM_BPM, control: DRIFT}
+
+secondary_planned_contrasts:
+  - {id: preprocessing_augmentation_combination, candidate: P1A1, control: A1}
+  - {id: total_pipeline_change_descriptive, candidate: DRIFT, control: D0}
+
+exploratory_contrasts:
+  - id: boundary_loss
+    candidate: DRIFTB
+    control: DRIFT
+    interpretation: exploratory_post_registration_not_a_primary_claim
+
+statistics:
+  pairing_key: canonical_id
+  estimator: mean_paired_per_image_difference
+  confidence_interval: paired_percentile_bootstrap_95_percent
+  bootstrap_samples: 10000
+  hypothesis_test: paired_sign_flip_two_sided
+  permutation_samples: 50000
+  random_seed: 20260925
+  multiplicity: Holm_across_five_primary_Dice_contrasts
+  secondary_and_exploratory_multiplicity: descriptive_no_confirmatory_claim
+
+execution_lock:
+  preflight_must_pass: true
+  checkpoint_sha256_recorded_at_preflight: true
+  protocol_sha256_recorded_at_preflight: true
+  all_arms_evaluated_in_same_run: true
+  result_driven_rerun_allowed: false
+  technical_failure_rerun: documented_only_before_scientific_interpretation
+  probability_or_threshold_tuning_on_test_allowed: false
+  model_selection_on_test_allowed: false
+  test_panels_selected_by_performance_allowed: false
+
+external_testing:
+  dataset: FUSeg
+  timing: only_after_internal_test_is_closed
+  adaptation_or_fine_tuning_allowed: false
+  same_checkpoints_and_thresholds: true
+
+excluded_from_internal_test:
+  - P2
+  - A2
+  - SAM_box
+  - SAM_mask_input
+  - MedSAM
+  - seeds_1337_and_2026_as_representative_models
+

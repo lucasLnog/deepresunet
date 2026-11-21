@@ -1,0 +1,14 @@
+version: 1
+architecture: "deep_res_unet_resnet34"
+model_id: "DR_IF"
+description: "DeepResUNet com decoder historico e encoder ResNet-34 ImageNet congelado."
+provenance: "DeepResUNet historica + ResNet-34"
+in_channels: 3
+classes: 1
+encoder: "resnet34"
+encoder_weights: "imagenet"
+freeze_encoder: true
+stem_stride: 1
+activation: null
+role: "transfer_learning_frozen"
+
