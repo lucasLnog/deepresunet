@@ -73,13 +73,6 @@ python scripts/verify_frozen_split.py --no-log
 
 ## Auditoria dos resultados publicados
 
-A revisão `4007b873018045a1223385ae956803011fb53708` contém os YAMLs com os
-nomes originais e as referências registradas nos lacres das avaliações.
-Ela está disponível pela tag `tcc-configuracoes-originais`.
-O notebook [de auditoria](notebooks/26_reproducibility_audit.ipynb) lê essa revisão
-para conferir os hashes históricos. Em uma cópia sem histórico Git, extraia
-o ZIP da tag e indique a pasta extraída em `HISTORICAL_PROJECT_ROOT`.
-
 Para reproduzir uma avaliação usando os YAMLs com os nomes atuais, execute a
 verificação preliminar correspondente. Ela gera um lacre em
 `results/reproduction/`, a partir dos hashes dos arquivos dessa execução.
