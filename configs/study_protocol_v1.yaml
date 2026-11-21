@@ -1,0 +1,159 @@
+version: 1
+frozen_at: "2026-08-28"
+status: "pre_registered_before_remaining_ablations"
+purpose: "Impedir que decisões posteriores sejam guiadas pelo teste ou por resultados convenientes."
+
+scientific_question: >-
+  Em que medida técnicas de pré-processamento, data augmentation, transfer learning e
+  fine-tuning melhoram a segmentação automática de úlceras de pé diabético, e qual é
+  o efeito de utilizar o SAM como etapa de refinamento das máscaras produzidas pela rede?
+
+locked_foundation:
+  development_dataset: "DFUC2022 canonical"
+  external_dataset: "FUSeg grouped external evaluation"
+  split_seed: 42
+  train_units: 1373
+  tuning_units: 294
+  internal_test_units: 294
+  frozen_test_manifest_sha256: "ce4e201fc1c0e60f7323e82d934dcc13b8ff3e395fce1b1377cfa3a30c5012b1"
+  patient_ids_available: false
+  patient_level_independence_claimed: false
+  central_architecture_family: "DeepResUNet histórica e variante derivada com encoder ResNet-34"
+  conventional_reference: "B0 U-Net/ResNet-34 aleatória"
+  primary_metric: "mean per-image Dice"
+  checkpoint_metric: "mean per-image Dice at threshold 0.5"
+  loss: "0.5 BCEWithLogits + 0.5 Soft Dice"
+  output: "single-channel logits"
+  internal_test_access: "one final batched evaluation after protocol freeze"
+  external_access: "after internal evaluation, without adaptation"
+
+metric_policy:
+  primary: "Dice macro por imagem"
+  secondary:
+    - "IoU macro por imagem"
+    - "recall por imagem"
+    - "precision por imagem, com zero para predição vazia contra referência positiva"
+    - "balanced accuracy"
+    - "Boundary IoU"
+  descriptive_only:
+    - "accuracy"
+    - "specificity"
+    - "micro/global metrics"
+  excluded_primary:
+    - "HD95, porque não há espaçamento físico confiável e há casos vazios"
+  threshold_grid: {start: 0.05, stop: 0.95, step: 0.01}
+  threshold_selection: "maximum validation mean per-image Dice"
+  plateau_tolerance: 0.0001
+  plateau_tie_break: "closest to 0.5, then lower"
+  report_both_thresholds: [0.5, "selected_on_tuning_set"]
+
+preprocessing_screen:
+  architecture: "DeepResUNet histórica"
+  seed: 42
+  common_input_after_preprocessing: "RGB scaled to [0,1]"
+  candidates:
+    P0: "RGB original; resize 384x512; no color correction"
+    P1: "Shades-of-Gray per image, Minkowski p=6; return RGB"
+    P2: "CLAHE only on CIELAB L*; clip limit 2.0; tile 8x8; return RGB"
+  direct_network_inputs_excluded:
+    - "CIELAB as three input channels"
+    - "HSV as three input channels"
+    - "grayscale replacing RGB"
+  combination_rule: "Do not combine P1 and P2 in screening; combination needs a new pre-registered rationale."
+
+augmentation_screen:
+  architecture: "DeepResUNet histórica"
+  preprocessing: "P0, to isolate augmentation from preprocessing"
+  seed: 42
+  candidates:
+    A0: "none"
+    A1: "plausible geometric transforms only"
+    A2: "A1 plus mild photometric degradation"
+  constraints:
+    - "train only"
+    - "image and mask share geometric transform"
+    - "mask nearest-neighbor interpolation"
+    - "no crop that can remove the ulcer"
+    - "no extreme hue shifts or anatomical deformation"
+  exact_ranges_must_be_frozen_before_first_augmentation_training: true
+  frozen_ranges_version: configs/augmentation_audit.yaml
+  A1_exact:
+    horizontal_flip_probability: 0.5
+    vertical_flip_probability: 0.5
+    affine_probability: 0.7
+    rotation_degrees: [-20.0, 20.0]
+    uniform_scale: [0.90, 1.10]
+    translation_fraction_xy: [-0.05, 0.05]
+    shear_degrees: [0.0, 0.0]
+  A2_exact:
+    inherits: A1
+    one_mild_photometric_transform_probability: 0.5
+    brightness_limit: [-0.10, 0.10]
+    contrast_limit: [-0.10, 0.10]
+    gamma_limit: [90, 110]
+    hue_shift_limit: [-3, 3]
+    saturation_shift_limit: [-10, 10]
+    value_shift_limit: [-10, 10]
+
+combination:
+  id: "D-PA"
+  rule: >-
+    Combine the preprocessing and augmentation winners once. Report interaction; do
+    not assume isolated gains will add.
+
+transfer_learning:
+  family: "DeepResUNetResNet34 with preserved decoder core and attention gates"
+  normalization: >-
+    All ResNet-34 comparison arms use ImageNet mean/std after the same RGB
+    preprocessing, including the randomly initialized arm.
+  primary_initialization_contrast:
+    random: "DR-RT: random ResNet-34, encoder trainable"
+    pretrained: "DR-IT: ImageNet ResNet-34, encoder trainable"
+    control: "same architecture, decoder seed, optimizer, schedule and total budget"
+  fine_tuning_contrast:
+    frozen: "DR-IF: ImageNet encoder frozen, including BatchNorm statistics"
+    progressive: "DR-IFT: same total epoch budget; release layer4 then layer3"
+  technical_negative_control: >-
+    DR-RF (random frozen encoder) may be retained as a diagnostic but is not the
+    primary scientific estimate of transfer learning.
+  architecture_comparison_rule: >-
+    D0 versus any DR model is descriptive because changing the encoder changes the
+    architecture.
+
+selection_budget:
+  screening_seed: 42
+  maximum_preprocessing_candidates_including_control: 3
+  maximum_augmentation_candidates_including_control: 3
+  no_unplanned_candidate_after_seeing_results: true
+  finalists_seeds: [17, 42, 123]
+  finalists: ["D0", "best_pre_SAM_DeepResUNet"]
+  change_control: >-
+    A new candidate requires a dated protocol version and literature/technical
+    rationale written before its result is observed. Test results can never justify a change.
+
+visualization_policy:
+  fixed_cases_selected_before_model_comparison: true
+  fixed_cases_manifest: "configs/visualization_cases_v1.csv"
+  fixed_case_count: 12
+  selection_basis: ["lesion-size strata", "luminance strata", "multiple components"]
+  standard_columns:
+    - "RGB input"
+    - "preprocessed input"
+    - "reference standard"
+    - "probability map"
+    - "binary prediction"
+    - "TP/FP/FN error map"
+    - "SAM result when applicable"
+  cherry_picking_for_primary_panel: false
+  automatic_best_and_worst_gallery_allowed_if_labeled: true
+
+final_evaluation:
+  internal_test_models: >-
+    D0 and each pre-registered stage winner needed to estimate preprocessing,
+    augmentation, transfer, fine-tuning and SAM effects. All are evaluated in one
+    locked run; no model is selected after seeing test results.
+  statistical_unit: "canonical image/group"
+  comparisons: "paired differences per image"
+  uncertainty: "95% grouped bootstrap confidence intervals"
+  multiplicity: "Holm correction for primary contrasts"
+  external_FUSeg: "same frozen pipelines and thresholds; no fine-tuning"

@@ -1,0 +1,48 @@
+protocol_version: 1
+stage: day6_preprocessing_visual_audit
+scientific_role: implementation_gate_before_preprocessing_training
+
+data:
+  validation_manifest: manifests/splits/dfuc_validation.csv
+  height: 384
+  width: 512
+  mask_threshold: 128
+  protected_partitions:
+    - test
+    - external
+    - FUSeg
+
+candidates:
+  P0:
+    method: none
+    description: RGB original scaled to zero_one
+  P1:
+    method: shades_of_gray
+    minkowski_p: 6.0
+    description: color constancy returning RGB
+  P2:
+    method: clahe_l_star
+    clip_limit: 2.0
+    tile_grid_size: [8, 8]
+    description: CLAHE on CIELAB L-star returning RGB
+
+visualization:
+  fixed_validation_ids:
+    - DFUC2022_100714
+    - DFUC2022_101229
+    - DFUC2022_101296
+    - DFUC2022_101303
+    - DFUC2022_100835
+    - DFUC2022_100842
+    - DFUC2022_101960
+    - DFUC2022_100873
+  selected_before_model_training: true
+
+gate:
+  purpose: detect implementation errors or gross color distortion
+  forbidden_use: choose scientific winner from visual appearance
+  winner_requires_training_validation_metrics: true
+
+runtime:
+  output_root: results/day6/preprocessing_audit
+

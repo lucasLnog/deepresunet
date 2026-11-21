@@ -1,0 +1,73 @@
+version: 1
+experiment_type: "development_baseline"
+experiment_id: "B0_unet_resnet34_random"
+scientific_result: true
+description: "Baseline controlado principal: U-Net/ResNet-34 aleatória, sem augmentation."
+
+data:
+  train_manifest: "manifests/splits/dfuc_train.csv"
+  validation_manifest: "manifests/splits/dfuc_validation.csv"
+  height: 384
+  width: 512
+  mask_threshold: 128
+  batch_size: 4
+  num_workers: 2
+  augmentation: false
+  preprocessing: "resize_pad_scale_0_1"
+
+model:
+  architecture: "unet"
+  encoder: "resnet34"
+  encoder_weights: null
+  in_channels: 3
+  classes: 1
+  activation: null
+
+loss:
+  name: "bce_dice"
+  bce_weight: 0.5
+  dice_weight: 0.5
+  smooth: 1.0
+
+optimizer:
+  name: "adam"
+  learning_rate: 0.001
+  weight_decay: 0.0
+
+scheduler:
+  name: "reduce_lr_on_plateau"
+  monitor: "validation_dice_mean"
+  mode: "max"
+  factor: 0.5
+  patience: 4
+  threshold: 0.001
+  threshold_mode: "abs"
+  min_learning_rate: 0.000001
+
+training:
+  seed: 42
+  max_epochs: 50
+  early_stopping_patience: 12
+  early_stopping_min_delta: 0.001
+  threshold_diagnostic: 0.5
+  require_cuda: true
+  mixed_precision: true
+  deterministic_algorithms: true
+  gradient_clip_norm: null
+
+threshold_analysis:
+  start: 0.05
+  stop: 0.95
+  step: 0.01
+  selection_metric: "dice"
+  plateau_tolerance: 0.0001
+  tie_break: "closest_to_0.5"
+
+output:
+  root: "results/development/baselines"
+  save_last_every_epochs: 1
+
+protection:
+  allow_test: false
+  allow_external: false
+

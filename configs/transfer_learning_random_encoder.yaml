@@ -1,0 +1,24 @@
+base_config: configs/augmentation_d0_a1.yaml
+protocol_version: 1
+stage: day9_transfer_learning_initialization
+experiment_id: DR-RT
+scientific_role: random_encoder_initialization_control
+data:
+  image_scale: zero_one_then_imagenet_standardization
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+model:
+  architecture: deep_res_unet_resnet34
+  provenance: DeepResUNet histórica com decoder residual e attention gates preservados
+  in_channels: 3
+  classes: 1
+  activation: null
+  encoder_weights: null
+  pretrained: false
+  freeze_encoder: false
+runtime:
+  device: auto
+  run_prefix: DRRT_seed42
+  output_root: results/day9/DRRT
+  resume_supported: true

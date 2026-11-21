@@ -1,0 +1,89 @@
+protocol_version: 1
+implementation_revision: 2
+frozen_at: "2026-09-14"
+stage: day13_sam_validation_selection
+scientific_role: automatic_postprocessing_ablation_validation
+
+network:
+  experiment_id: DR-IFT
+  seed: 42
+  run_id: DRIFT_seed42_20260903T033716Z
+  run_directory: results/day10/DRIFT/DRIFT_seed42_20260903T033716Z
+  checkpoint_filename: best_checkpoint.pt
+  checkpoint_epoch: 56
+  threshold: 0.18
+  threshold_source: validation_only_frozen_before_SAM
+  input_height: 384
+  input_width: 512
+
+sam:
+  family: SAM 1
+  model_type: vit_b
+  checkpoint_filename: sam_vit_b_01ec64.pth
+  checkpoint_path: models/sam/sam_vit_b_01ec64.pth
+  checkpoint_url: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+  repository: https://github.com/facebookresearch/segment-anything
+  repository_commit: 6fdee8f2727f4506cfbbe553e23b895e27956588
+  weights_frozen: true
+  fine_tuning: false
+  multimask_output: false
+  image_encoder_size: 1024
+
+prompts:
+  source: DR-IFT prediction only
+  ground_truth_allowed: false
+  modes: [box, mask_input, box_plus_mask]
+  threshold_for_components: 0.18
+  connectivity: 8
+  box_padding_pixels: 0
+  multiple_components: one_prompt_per_component_union_outputs
+  component_mask_input: shifted_network_logits_inside_component_box
+  mask_input_size: [256, 256]
+  mask_input_alignment: sam_resize_longest_side_then_bottom_right_padding
+  outside_logit: -10.0
+  empty_prediction: empty_output_without_sam_call
+  max_components_safety: 64
+
+data:
+  split: validation
+  manifest: manifests/splits/dfuc_validation.csv
+  manifest_sha256: f689915c088a5b2488ffdd8351290c165e2386766bd293c3dea3e983c6842fe3
+  expected_records: 294
+  fixed_visualization_manifest: configs/visualization_cases_v1.csv
+  fixed_visualization_manifest_sha256: 5d5456e586610eb6949995a75cf25f9c8508b24801f127efb8b82b5c359c4787
+  expected_fixed_cases: 12
+  protected_partitions: [test, external, FUSeg]
+
+evaluation:
+  baseline: DR-IFT_without_SAM
+  variants: [SAM_box, SAM_mask_input, SAM_box_plus_mask]
+  primary_metric: macro_dice_per_image
+  secondary_metrics: [iou, precision, recall, specificity, balanced_accuracy, boundary_iou]
+  descriptive_metrics: [accuracy]
+  threshold_optimization_allowed: false
+  selection_rule: highest_validation_macro_dice
+  plateau_tolerance: 0.0001
+  tie_break_order: [SAM_box, SAM_mask_input, SAM_box_plus_mask]
+  tie_break_rationale: prefer_simpler_prompt_when_scores_are_materially_equal
+  reference_used_only_after_prediction: true
+  selected_mode_inference_is_development_only: true
+  final_effect_requires_locked_test: true
+  boundary_dilation_ratio: 0.02
+
+statistics:
+  statistical_unit: canonical_image
+  paired_comparisons: each_SAM_variant_minus_DR-IFT_without_SAM
+  bootstrap_method: paired_percentile
+  bootstrap_samples: 10000
+  confidence: 0.95
+  permutation_method: paired_sign_flip_two_sided
+  permutation_samples: 50000
+  multiplicity: Holm_across_three_primary_Dice_contrasts
+  seed: 20260914
+
+runtime:
+  output_root: results/day13/SAM_validation
+  run_prefix: SAM1_ViTB_DRIFT_seed42_validation
+  progress_every_images: 10
+  device: auto
+  protected_partitions_accessed: false

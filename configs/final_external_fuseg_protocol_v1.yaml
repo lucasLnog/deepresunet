@@ -1,0 +1,114 @@
+protocol_version: 1
+frozen_at: "2026-09-29"
+status: frozen_before_external_evaluation_access
+purpose: >-
+  Avaliar a generalizacao externa do modelo principal DRIFT no FUSeg sem ajuste,
+  mantendo DRIFT+SAM apenas como analise secundaria pre-definida.
+
+data:
+  dataset: FUSeg_canonical
+  split: external_evaluation
+  manifest: manifests/canonical/fuseg_external_canonical.csv
+  manifest_sha256: be4e9014900db574d2d915c81b1bee81e51f5735a671c7243428dd871215718e
+  raw_records: 1010
+  excluded_records: 24
+  valid_reference_records: 986
+  expected_canonical_units: 962
+  exact_duplicate_groups_after_exclusion: 23
+  exclusions_file: configs/data_quality_exclusions.csv
+  exclusions_sha256: 642869acdf8b608f5d533a32ef47099c13f791bff898f766513ed39a1e099d3d
+  cross_dataset_audit: results/audit/2026-08-25/AUDITORIA_DATASETS.md
+  cross_dataset_audit_sha256: 00970868bf90b86aba49c72a9da532622cccd927887391ce72001fbb3dd3181d
+  exact_cross_dataset_groups: 0
+  perceptual_cross_dataset_candidates: 0
+  statistical_unit: unique_decoded_image
+  duplicate_reference_policy: average_metrics_across_references_then_weight_unit_once
+  patient_ids_available: false
+  patient_level_independence_claimed: false
+  image_height: 384
+  image_width: 512
+  access_policy: one_batched_run_after_successful_preflight
+
+primary_model:
+  id: DRIFT
+  role: frozen_primary_external_model
+  seed: 42
+  config: configs/fine_tuning_progressive.yaml
+  run_id: DRIFT_seed42_20260903T033716Z
+  run_directory: results/day10/DRIFT/DRIFT_seed42_20260903T033716Z
+  checkpoint: best_checkpoint.pt
+  threshold: 0.18
+  threshold_source: DFUC2022_validation_only
+  preprocessing: P0_RGB
+  normalization: imagenet
+  test_time_augmentation: false
+
+secondary_model:
+  id: DRIFT_SAM_BPM
+  role: frozen_secondary_SAM_analysis
+  derived_from: DRIFT
+  config: configs/sam_validation.yaml
+  network_threshold: 0.18
+  threshold_source: DFUC2022_validation_only_before_SAM
+  sam_mode: box_plus_mask
+  sam_checkpoint: models/sam/sam_vit_b_01ec64.pth
+  sam_repository_commit: 6fdee8f2727f4506cfbbe553e23b895e27956588
+
+metrics:
+  primary: macro_per_unique_image_dice_at_frozen_threshold_0_18
+  sensitivity: macro_per_unique_image_dice_at_fixed_threshold_0_5_for_DRIFT_only
+  secondary:
+    - macro_per_unique_image_iou
+    - macro_per_unique_image_precision
+    - macro_per_unique_image_recall
+    - macro_per_unique_image_balanced_accuracy
+    - macro_per_unique_image_boundary_iou_at_2_percent_diagonal
+    - zero_dice_unit_count
+  descriptive_only:
+    - accuracy
+    - specificity
+    - external_minus_internal_DRIFT_metric_difference
+
+statistics:
+  absolute_DRIFT_confidence_interval: percentile_bootstrap_95_percent
+  SAM_contrast: paired_mean_per_unique_image_difference
+  SAM_confidence_interval: paired_percentile_bootstrap_95_percent
+  SAM_hypothesis_test: paired_sign_flip_two_sided_for_Dice
+  external_internal_gap: descriptive_unpaired_difference_no_model_selection
+  bootstrap_samples: 10000
+  permutation_samples: 50000
+  random_seed: 20260929
+  multiplicity: single_predefined_secondary_SAM_Dice_contrast_no_adjustment
+
+visualization:
+  panel_units: 12
+  selection_rule: equally_spaced_after_lexical_sorting_of_canonical_ids
+  performance_blind: true
+
+execution_lock:
+  preflight_must_pass: true
+  checkpoint_sha256_recorded_at_preflight: true
+  protocol_sha256_recorded_at_preflight: true
+  manifest_sha256_recorded_at_preflight: true
+  exclusions_sha256_recorded_at_preflight: true
+  inference_before_preflight_allowed: false
+  fine_tuning_on_FUSeg_allowed: false
+  threshold_reselection_allowed: false
+  checkpoint_reselection_allowed: false
+  model_selection_on_FUSeg_allowed: false
+  test_time_augmentation_allowed: false
+  result_driven_rerun_allowed: false
+  technical_failure_rerun: documented_only_before_scientific_interpretation
+  panels_selected_by_performance_allowed: false
+
+excluded_models:
+  - DRIFTB
+  - D0
+  - P1
+  - A1
+  - P1A1
+  - DRRT
+  - DRIT
+  - DRIF
+  - MedSAM
+

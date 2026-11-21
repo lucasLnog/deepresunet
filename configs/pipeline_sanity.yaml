@@ -1,0 +1,62 @@
+protocol_version: 1
+stage: day4_pipeline_sanity
+scientific_result: false
+seed: 42
+
+data:
+  train_manifest: manifests/splits/dfuc_train.csv
+  validation_manifest: manifests/splits/dfuc_validation.csv
+  height: 384
+  width: 512
+  mask_threshold: 128
+  protected_partitions:
+    - test
+    - external
+    - FUSeg
+
+model:
+  architecture: deep_res_unet
+  provenance: FUSegNet - DeepResidualUNet.ipynb
+  in_channels: 3
+  classes: 1
+  base_channels: 32
+  activation: null
+  output: logits
+  pretrained: false
+
+loss:
+  name: bce_with_logits_plus_soft_dice
+  bce_weight: 0.5
+  dice_weight: 0.5
+  smooth: 1.0
+
+overfit:
+  canonical_ids:
+    - DFUC2022_100728
+    - DFUC2022_101155
+    - DFUC2022_100824
+    - DFUC2022_101405
+  selection_rule: nearest_to_train_foreground_area_octiles_1_3_5_7
+  batch_size: 2
+  epochs: 300
+  learning_rate: 0.001
+  threshold: 0.5
+  augmentation: false
+  early_acceptance:
+    min_loss_reduction_fraction: 0.80
+    min_macro_dice: 0.90
+
+smoke:
+  train_samples: 16
+  validation_samples: 8
+  batch_size: 2
+  epochs: 1
+  learning_rate: 0.001
+  threshold: 0.5
+  augmentation: false
+
+runtime:
+  device: auto
+  amp: false
+  num_workers: 0
+  output_root: results/day4_sanity

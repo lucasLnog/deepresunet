@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# The frozen protocols and split tables are verified byte-for-byte.
+configs/** -text
+manifests/** -text

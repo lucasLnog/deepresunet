@@ -1,0 +1,85 @@
+protocol_version: 1
+stage: day5_d0_baseline
+experiment_id: D0
+scientific_role: central_baseline
+seed: 42
+
+data:
+  train_manifest: manifests/splits/dfuc_train.csv
+  validation_manifest: manifests/splits/dfuc_validation.csv
+  height: 384
+  width: 512
+  mask_threshold: 128
+  image_scale: zero_one
+  color_preprocessing: none
+  augmentation: none
+  protected_partitions:
+    - test
+    - external
+    - FUSeg
+
+model:
+  architecture: deep_res_unet
+  provenance: FUSegNet - DeepResidualUNet.ipynb
+  in_channels: 3
+  classes: 1
+  base_channels: 32
+  activation: null
+  encoder_weights: null
+  pretrained: false
+
+loss:
+  name: bce_with_logits_plus_soft_dice
+  bce_weight: 0.5
+  dice_weight: 0.5
+  smooth: 1.0
+
+training:
+  optimizer: adam
+  learning_rate: 0.001
+  batch_size: 4
+  oom_fallback_batch_size: 2
+  max_epochs: 100
+  amp: false
+  num_workers: 0
+  checkpoint_threshold: 0.5
+  scheduler:
+    name: reduce_lr_on_plateau
+    mode: max
+    factor: 0.5
+    patience: 5
+    min_learning_rate: 0.000001
+  early_stopping:
+    patience: 15
+    min_delta: 0.001
+
+threshold_selection:
+  start: 0.05
+  stop: 0.95
+  step: 0.01
+  objective: macro_dice
+  tie_break: closest_to_0.5
+
+visualization:
+  fixed_validation_ids:
+    - DFUC2022_100714
+    - DFUC2022_101229
+    - DFUC2022_101296
+    - DFUC2022_101303
+    - DFUC2022_100835
+    - DFUC2022_100842
+    - DFUC2022_101960
+    - DFUC2022_100873
+  selection_basis: foreground_fraction_quantiles_and_multiple_components_before_training
+
+confirmation:
+  screening_seed: 42
+  finalist_seeds:
+    - 42
+    - 1337
+    - 2026
+
+runtime:
+  device: auto
+  output_root: results/day5/D0
+  resume_supported: true

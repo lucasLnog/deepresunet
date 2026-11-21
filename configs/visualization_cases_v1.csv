@@ -1,0 +1,13 @@
+panel_order,selection_role,canonical_id,image_path,mask_paths,foreground_area_bin,foreground_fraction,component_group,connected_components_8,mean_luminance
+1,area_0_dark,DFUC2022_101124,Dataset/DFUC2022_train_images/101124.jpg,Dataset/DFUC2022_train_masks/101124.png,0,0.00208984375,single,1,86.54948413867186
+2,area_0_bright,DFUC2022_100855,Dataset/DFUC2022_train_images/100855.jpg,Dataset/DFUC2022_train_masks/100855.png,0,0.002001953125,single,1,184.2140717786458
+3,area_1_dark,DFUC2022_100106,Dataset/DFUC2022_train_images/100106.jpg,Dataset/DFUC2022_train_masks/100106.png,1,0.006295572916666666,single,1,95.72473357942707
+4,area_1_bright,DFUC2022_101435,Dataset/DFUC2022_train_images/101435.jpg,Dataset/DFUC2022_train_masks/101435.png,1,0.006259765625,single,1,181.08263418684896
+5,area_2_dark,DFUC2022_101291,Dataset/DFUC2022_train_images/101291.jpg,Dataset/DFUC2022_train_masks/101291.png,2,0.011803385416666666,multiple,2,113.27888747460938
+6,area_2_bright,DFUC2022_100711,Dataset/DFUC2022_train_images/100711.jpg,Dataset/DFUC2022_train_masks/100711.png,2,0.011865234375,multiple,2,167.32987236979167
+7,area_3_dark,DFUC2022_101502,Dataset/DFUC2022_train_images/101502.jpg,Dataset/DFUC2022_train_masks/101502.png|Dataset/DFUC2022_train_masks/101941.png,3,0.024899088541666666,multiple,2,109.2752071705729
+8,area_3_bright,DFUC2022_101009,Dataset/DFUC2022_train_images/101009.jpg,Dataset/DFUC2022_train_masks/101009.png,3,0.016832682291666668,single,1,179.16243416666666
+9,area_4_dark,DFUC2022_101216,Dataset/DFUC2022_train_images/101216.jpg,Dataset/DFUC2022_train_masks/101216.png,4,0.09502604166666667,single,1,114.89620331770833
+10,area_4_bright,DFUC2022_101331,Dataset/DFUC2022_train_images/101331.jpg,Dataset/DFUC2022_train_masks/101331.png,4,0.048987630208333334,single,1,173.57276044010416
+11,multiple_component_1,DFUC2022_100457,Dataset/DFUC2022_train_images/100457.jpg,Dataset/DFUC2022_train_masks/100457.png,1,0.004671223958333333,multiple,3,151.01164490820312
+12,multiple_component_2,DFUC2022_100012,Dataset/DFUC2022_train_images/100012.jpg,Dataset/DFUC2022_train_masks/100012.png,2,0.008040364583333333,multiple,3,148.66105161067708

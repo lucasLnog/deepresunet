@@ -1,0 +1,57 @@
+version: 1
+experiment_type: "overfit_smoke"
+scientific_result: false
+description: "Teste de sanidade: memorizar quatro amostras exclusivamente de treino."
+
+data:
+  manifest: "manifests/splits/dfuc_train.csv"
+  split: "train"
+  samples: 4
+  batch_size: 2
+  num_workers: 0
+  mask_threshold: 128
+  height: 384
+  width: 512
+  augmentation: false
+  normalization: "scale_0_1_only"
+
+model:
+  architecture: "unet"
+  encoder: "resnet34"
+  encoder_weights: null
+  in_channels: 3
+  classes: 1
+  activation: null
+
+loss:
+  name: "bce_dice"
+  bce_weight: 0.5
+  dice_weight: 0.5
+  smooth: 1.0
+
+optimizer:
+  name: "adam"
+  learning_rate: 0.001
+  weight_decay: 0.0
+
+training:
+  seed: 42
+  max_epochs: 200
+  threshold_diagnostic: 0.5
+  target_dice: 0.97
+  target_patience_epochs: 5
+  require_cuda: true
+  mixed_precision: true
+  deterministic_algorithms: true
+  gradient_clip_norm: null
+
+output:
+  root: "results/smoke/overfit"
+  save_every_epochs: 5
+  best_min_delta: 0.005
+  write_per_image_every_epochs: 10
+
+protection:
+  allow_validation: false
+  allow_test: false
+  allow_external: false

@@ -1,0 +1,10 @@
+architecture: "deep_res_unet"
+provenance: "FUSegNet - DeepResidualUNet.ipynb"
+role: "central_historical_baseline"
+in_channels: 3
+classes: 1
+base_channels: 32
+encoder_weights: null
+activation: null
+returns: "logits"
+pretrained: false

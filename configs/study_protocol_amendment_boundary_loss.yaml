@@ -1,0 +1,45 @@
+amendment_version: 1
+dated_at: "2026-09-15"
+parent_protocol: configs/study_protocol_v1.yaml
+status: exploratory_validation_only_frozen_before_results
+reason: >-
+  Avaliar se uma penalização explícita do perímetro melhora a delimitação das bordas
+  observada nos painéis de validação, preservando a arquitetura central e todo o
+  restante protocolo DR-IFT.
+literature_basis:
+  perimeter_loss:
+    citation: "El Jurdi et al., MIDL 2021"
+    url: "https://proceedings.mlr.press/v143/el-jurdi21a.html"
+  boundary_evaluation:
+    citation: "Cheng et al., CVPR 2021"
+    url: "https://openaccess.thecvf.com/content/CVPR2021/html/Cheng_Boundary_IoU_Improving_Object-Centric_Image_Segmentation_Evaluation_CVPR_2021_paper.html"
+classification: >-
+  Ablação exploratória pós-registro; não pertence à família original de candidatos
+  pré-registrados e não substitui silenciosamente o protocolo v1.
+locked_change:
+  experiment_id: DR-IFT-B
+  only_changed_factor: loss
+  regional_loss: "0.5 BCEWithLogits + 0.5 Soft Dice"
+  combination: "0.9 regional loss + 0.1 soft relative perimeter discrepancy"
+  perimeter_weight: 0.10
+  weight_search_allowed: false
+preserved:
+  - DeepResUNet/ResNet-34 central architecture
+  - ImageNet initialization and normalization
+  - P0 preprocessing and A1 augmentation
+  - 384x512 resolution and batch policy
+  - progressive release schedule and learning rates
+  - checkpoint and threshold selection rules
+  - seeds 42, 1337 and 2026
+  - train and validation manifests
+protected_partitions: [test, external, FUSeg]
+decision_rule:
+  primary_metric: mean per-image Dice at validation-selected threshold
+  minimum_mean_delta_across_seeds: 0.005
+  minimum_seed_wins: 2
+  boundary_result: secondary_descriptive_only
+  boundary_only_gain_is_sufficient: false
+  action_if_rule_fails: retain_original_DR_IFT
+  action_if_rule_passes: >-
+    Document DR-IFT-B as an exploratory candidate; do not open the test until the
+    final model set and one-shot evaluation plan are separately frozen.
